@@ -3,7 +3,7 @@ import './TodoPage.less';
 
 const TodoPage: React.FC = () => {
     return (
-        <div>
+        <div className="todo">
             TodoPage
         </div>
     )
