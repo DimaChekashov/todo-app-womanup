@@ -10,6 +10,12 @@ const TodoList: React.FC = () => {
             <TodoItem />
             <TodoItem />
             <TodoItem />
+            <TodoItem />
+            <TodoItem />
+            <TodoItem />
+            <TodoItem />
+            <TodoItem />
+            <TodoItem />
         </div>
     )
 }
