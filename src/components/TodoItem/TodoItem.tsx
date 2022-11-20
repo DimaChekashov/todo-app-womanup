@@ -5,13 +5,22 @@ import './TodoItem.less';
 
 interface Props {
     todo: Todo;
+    onClick(): void;
 }
 
-const TodoItem: React.FC<Props> = ({todo}) => {
+const TodoItem: React.FC<Props> = ({todo, onClick}) => {
     const isFailed: boolean = dayjs(todo.endDate).format('YYYY-MM-DD') > dayjs().format('YYYY-MM-DD');
 
+    const getTodoItemClasses = (): string => {
+        return [
+            "todo-item",
+            !isFailed ? " failed" : "",
+            todo.success ? " success" : ""
+        ].join(" ")
+    }
+
     return (
-        <div className={`todo-item ${!isFailed ? "failed" : ""}`}>
+        <div className={getTodoItemClasses()} onClick={onClick}>
             <div className="todo-item__name">
                 {todo.title}
             </div>

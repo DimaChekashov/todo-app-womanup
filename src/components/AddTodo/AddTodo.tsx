@@ -31,8 +31,10 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
             storageRef.child(`files/${file?.name}`).put(file);
         }
         createTodo({
+            id: "",
             title,
             description,
+            success: false,
             fileUrl: file ? `files/${file?.name}` : "",
             endDate: dayjs(endDate).valueOf()
         });

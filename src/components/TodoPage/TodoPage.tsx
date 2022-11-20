@@ -1,30 +1,140 @@
 import dayjs from 'dayjs';
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { Context } from '../..';
+import { Todo } from '../../types/types';
 import './TodoPage.less';
 
-const TodoPage: React.FC = () => {
-    return (
-        <div className="todo">
-            <h2 className="todo__title">Title</h2>
-            <p className="todo__description">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Repudiandae odio quibusdam non, dignissimos accusantium itaque expedita odit animi obcaecati at possimus unde ratione aspernatur eaque suscipit? Obcaecati aspernatur reprehenderit distinctio!</p>
-            <div className="todo__date">
-                End date: {dayjs().startOf('day').format('YYYY-MM-DD')}
+interface Props {
+    todo?: Todo;
+    setCurrentTodo(todo: Todo): void;
+    deleteTodo(id: string): void;
+    editMode: boolean;
+    setEditMode(status: boolean): void;
+}
+
+const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, setCurrentTodo}) => {
+    const { storageRef, firestore } = useContext(Context);
+
+    const [title, setTitle] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
+
+    useEffect(() => {
+        setTitle(todo?.title as string);
+        setDescription(todo?.description as string);
+        setEndDate(dayjs(todo?.endDate).format('YYYY-MM-DD'));
+    }, [todo]);
+
+    const downloadFile = () => {
+        storageRef.child(todo?.fileUrl).getDownloadURL()
+            .then((url: string) => {
+                const link = document.createElement('a');
+                document.body.appendChild(link);
+                link.href = url;
+                link.target = "_blank";
+                link.download = "im dsdagete sdxt02.jpg";
+                link.click();
+                document.body.removeChild(link);
+            });
+    }
+
+    const updateSuccess = () => {
+        firestore.collection('todos').doc(todo?.id).update({
+            "success": !todo?.success
+        });
+    }
+
+    const updateFields = () => {
+        if(todo) {
+            firestore.collection('todos').doc(todo.id).update({
+                "title": title,
+                "description": description,
+                "endDate": dayjs(endDate).valueOf()
+            });
+            
+            setCurrentTodo({...todo, title, description, endDate: dayjs(endDate).valueOf()});
+        }
+        
+        setEditMode(false);
+    }
+
+    if (!todo) {
+        return (
+            <div className="todo">
+                Select Todo
             </div>
-            <div className="todo__controls">
-                <button type="button" className="todo__controls-btn">
-                    Completed
-                </button>
-                <button type="button" className="todo__controls-btn todo__controls-btn_update">
-                    Update
-                </button>
-                <button type="button" className="todo__controls-btn todo__controls-btn_download">
-                    Download File
-                </button>
-                <button type="button" className="todo__controls-btn todo__controls-btn_delete">
-                    Delete
-                </button>
+        )
+    }
+
+    const editLayout = (
+        <div className="todo">
+            <div className="todo__header">
+                <input 
+                    type="text" 
+                    placeholder="Todo name"  
+                    value={title}
+                    onChange={(e: React.FormEvent<HTMLInputElement>) => setTitle(e.currentTarget.value)}
+                />
+            </div>
+            <div className="todo__body">
+                <textarea 
+                    name="describe" 
+                    placeholder="Todo description" 
+                    value={description}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                />
+                <div className="todo__date">
+                    End date: 
+                    <input 
+                        type="date" 
+                        placeholder="Todo name" 
+                        value={endDate}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(dayjs(new Date(e.target.value)).format('YYYY-MM-DD'))}
+                    />
+                </div>
+            </div>
+            <div className="todo__footer">
+                <div className="todo__controls">
+                    <button type="button" className="todo__controls-btn todo__controls-btn_update" onClick={updateFields}>
+                        Save
+                    </button>
+                </div>
             </div>
         </div>
+    );
+
+    return (
+        !editMode ? (
+            <div className="todo">
+                <div className="todo__header">
+                    <h2 className="todo__title">{todo?.title}</h2>
+                </div>
+                <div className="todo__body">
+                    <p className="todo__description">{todo?.description}</p>
+                    <div className="todo__date">
+                        End date: {dayjs(todo?.endDate).startOf('day').format('YYYY-MM-DD')}
+                    </div>
+                </div>
+                <div className="todo__footer">
+                    <div className="todo__controls">
+                        <button type="button" className="todo__controls-btn" onClick={updateSuccess}>
+                            Completed
+                        </button>
+                        <button type="button" className="todo__controls-btn todo__controls-btn_update" onClick={() => setEditMode(true)}>
+                            Edit
+                        </button>
+                        <button type="button" className="todo__controls-btn todo__controls-btn_download" onClick={downloadFile}>
+                            Download File
+                        </button>
+                        <button type="button" className="todo__controls-btn todo__controls-btn_delete" onClick={() => deleteTodo(todo?.id)}>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        ) : (
+            editLayout
+        )
     )
 }
 

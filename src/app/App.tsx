@@ -1,7 +1,8 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Context } from '..';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import firebase from 'firebase';
+import { v4 as uuid } from 'uuid';
 import AddTodo from '../components/AddTodo/AddTodo';
 import TodoList from '../components/TodoList/TodoList';
 import TodoPage from '../components/TodoPage/TodoPage';
@@ -13,33 +14,42 @@ const App: React.FC = () => {
   const [todos, loading] = useCollectionData(
     firestore.collection('todos').orderBy('createdAt')
   );
+  const [currentTodo, setCurrentTodo] = useState<Todo>();
+  const [editMode, setEditMode] = useState<boolean>(false);
 
-  const createTodo = ({title, description, fileUrl, endDate}: Todo) => {
-    firestore.collection("todos").add({
+  const createTodo = ({title, description, fileUrl, endDate, success}: Todo) => {
+    const id = uuid();
+
+    firestore.collection("todos").doc(id).set({
+      id,
       title,
       description,
       fileUrl,
+      success,
       endDate,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    })
   }
   
-  const removeTodo = () => {
-    
-  }
-
-  const updateTodo = () => {
-    
+  const deleteTodo = (id: string) => {
+    firestore.collection("todos").doc(id).delete();
+    setCurrentTodo(undefined);
   }
 
   return (
     <div className="app">
       <div className="app__sidebar">
         <AddTodo createTodo={createTodo} />
-        <TodoList todos={todos as Todo[]} />
+        <TodoList todos={todos as Todo[]} setCurrentTodo={setCurrentTodo} />
       </div>
       <div className="app__content">
-        <TodoPage />
+        <TodoPage 
+          todo={currentTodo} 
+          deleteTodo={deleteTodo}
+          editMode={editMode}
+          setEditMode={setEditMode} 
+          setCurrentTodo={setCurrentTodo}
+        />
       </div>
     </div>
   );
