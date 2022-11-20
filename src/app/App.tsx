@@ -38,11 +38,21 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
+      <div className="app__header">
+        <button 
+          type="button" 
+          className="app__header-back"
+          onClick={() => {
+            setEditMode(false);
+            setCurrentTodo(undefined);
+          }}
+        >&#8680;</button>
+      </div>
       <div className="app__sidebar">
         <AddTodo createTodo={createTodo} />
         <TodoList todos={todos as Todo[]} setCurrentTodo={setCurrentTodo} />
       </div>
-      <div className="app__content">
+      <div className={`app__content${currentTodo ? " active" : ""}`}>
         <TodoPage 
           todo={currentTodo} 
           deleteTodo={deleteTodo}

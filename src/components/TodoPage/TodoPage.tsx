@@ -19,6 +19,8 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
     const [description, setDescription] = useState<string>("");
     const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
 
+    const isFailed: boolean = dayjs(todo?.endDate).format('YYYY-MM-DD') > dayjs().format('YYYY-MM-DD');
+
     useEffect(() => {
         setTitle(todo?.title as string);
         setDescription(todo?.description as string);
@@ -39,9 +41,14 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
     }
 
     const updateSuccess = () => {
-        firestore.collection('todos').doc(todo?.id).update({
-            "success": !todo?.success
-        });
+
+        if(todo) {
+            firestore.collection('todos').doc(todo?.id).update({
+                "success": !todo.success
+            });
+            
+            setCurrentTodo({...todo, success: !todo.success});
+        }
     }
 
     const updateFields = () => {
@@ -61,9 +68,17 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
     if (!todo) {
         return (
             <div className="todo">
-                Select Todo
+                <div className="todo__edit-title">Select Todo</div>
             </div>
         )
+    }
+
+    const getTodoDateClasses = (): string => {
+        return [
+            "todo__date",
+            !isFailed ? " failed" : "",
+            todo.success ? " success" : ""
+        ].join(" ")
     }
 
     const editLayout = (
@@ -71,7 +86,8 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
             <div className="todo__header">
                 <input 
                     type="text" 
-                    placeholder="Todo name"  
+                    placeholder="Todo name" 
+                    className="todo__input"
                     value={title}
                     onChange={(e: React.FormEvent<HTMLInputElement>) => setTitle(e.currentTarget.value)}
                 />
@@ -80,6 +96,7 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
                 <textarea 
                     name="describe" 
                     placeholder="Todo description" 
+                    className="todo__textarea"
                     value={description}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
                 />
@@ -88,6 +105,7 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
                     <input 
                         type="date" 
                         placeholder="Todo name" 
+                        className="todo__dateinput"
                         value={endDate}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(dayjs(new Date(e.target.value)).format('YYYY-MM-DD'))}
                     />
@@ -111,14 +129,18 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
                 </div>
                 <div className="todo__body">
                     <p className="todo__description">{todo?.description}</p>
-                    <div className="todo__date">
+                    <div className={getTodoDateClasses()}>
                         End date: {dayjs(todo?.endDate).startOf('day').format('YYYY-MM-DD')}
                     </div>
                 </div>
                 <div className="todo__footer">
                     <div className="todo__controls">
-                        <button type="button" className="todo__controls-btn" onClick={updateSuccess}>
-                            Completed
+                        <button 
+                            type="button" 
+                            className={`todo__controls-btn ${todo.success ? "danger" : "success"}`} 
+                            onClick={updateSuccess}
+                        >
+                            {todo.success ? "Uncomplete" : "Complete"}
                         </button>
                         <button type="button" className="todo__controls-btn todo__controls-btn_update" onClick={() => setEditMode(true)}>
                             Edit
@@ -126,7 +148,7 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
                         <button type="button" className="todo__controls-btn todo__controls-btn_download" onClick={downloadFile}>
                             Download File
                         </button>
-                        <button type="button" className="todo__controls-btn todo__controls-btn_delete" onClick={() => deleteTodo(todo?.id)}>
+                        <button type="button" className="todo__controls-btn danger todo__controls-btn_delete" onClick={() => deleteTodo(todo?.id)}>
                             Delete
                         </button>
                     </div>
