@@ -1,20 +1,22 @@
 import dayjs from 'dayjs';
 import React from 'react';
+import { Todo } from '../../types/types';
 import './TodoItem.less';
 
 interface Props {
-    title: string;
-    endDate: number;
+    todo: Todo;
 }
 
-const TodoItem: React.FC<Props> = ({title, endDate}) => {
+const TodoItem: React.FC<Props> = ({todo}) => {
+    const isFailed: boolean = dayjs(todo.endDate).format('YYYY-MM-DD') > dayjs().format('YYYY-MM-DD');
+
     return (
-        <div className="todo-item">
+        <div className={`todo-item ${!isFailed ? "failed" : ""}`}>
             <div className="todo-item__name">
-                {title}
+                {todo.title}
             </div>
             <div className="todo-item__date">
-                {dayjs(endDate).startOf('day').format('YYYY-MM-DD')}
+                {dayjs(todo.endDate).format('YYYY-MM-DD')}
             </div>
         </div>
     )

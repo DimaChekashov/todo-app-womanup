@@ -3,5 +3,8 @@ export interface Todo {
     description: string;
     fileUrl: string;
     endDate: number;
-    createAt?: number;
+    createdAt?: {
+        seconds: number;
+        nanoseconds: number;
+    };
 }

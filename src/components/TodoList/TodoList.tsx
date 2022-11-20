@@ -10,11 +10,7 @@ interface Props {
 const TodoList: React.FC<Props> = ({todos}) => {
     return (
         <div className="todo-list">
-            {todos?.map((todo: Todo, index) => <TodoItem 
-                key={index} 
-                title={todo.title} 
-                endDate={todo.endDate} 
-            />)}
+            {todos?.map((todo: Todo, index) => <TodoItem key={index} todo={todo} />)}
         </div>
     )
 }
