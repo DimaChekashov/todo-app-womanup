@@ -1,7 +1,7 @@
-import dayjs from 'dayjs';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { Context } from '../..';
 import { Todo } from '../../types/types';
+import dayjs from 'dayjs';
 import './AddTodo.less';
 
 interface Props {
@@ -11,8 +11,11 @@ interface Props {
 const AddTodo: React.FC<Props> = ({createTodo}) => {
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const [endDate, setEndDate] = useState<number>(Date.now());
+    const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
     const [file, setFile] = useState<File>();
+
+    const fileRef = useRef<HTMLInputElement>(null);
+
     const { storageRef } = useContext(Context);
 
     const fileOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,22 +23,31 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
 
         if (!file) return;
 
-        console.log(file);
         setFile(file[0]);
     }
 
-    const uploadFile = () => {
+    const addTodo = () => {
         if(file) {
-            // storageRef.child(`files/${file?.name}`).put(file).then((snapshot: any) => {
-            //     console.log(snapshot);
-            // });
+            storageRef.child(`files/${file?.name}`).put(file);
         }
-        // createTodo({
-        //     title,
-        //     description,
-        //     fileUrl: file ? `files/${file?.name}` : "",
-        //     endDate
-        // });
+        createTodo({
+            title,
+            description,
+            fileUrl: file ? `files/${file?.name}` : "",
+            endDate: dayjs(endDate).valueOf()
+        });
+        
+        clearFields();
+    }
+
+    const clearFields = () => {
+        setTitle("");
+        setDescription("");
+        setEndDate(dayjs().format('YYYY-MM-DD'));
+        
+        if(fileRef.current) {
+            fileRef.current.value = "";
+        }
     }
 
     return (
@@ -55,6 +67,7 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
             />
             <input 
+                ref={fileRef}
                 type="file" 
                 className="add-todo__file" 
                 onChange={fileOnChange} 
@@ -62,10 +75,11 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
             <input 
                 type="date" 
                 placeholder="Todo name" 
-                className="add-todo__date" 
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(new Date(e.target.value).getTime())}
+                className="add-todo__date"
+                value={endDate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(dayjs(new Date(e.target.value)).format('YYYY-MM-DD'))}
             />
-            <button className="add-todo__btn" onClick={uploadFile}>Create Todo</button>
+            <button className="add-todo__btn" onClick={addTodo}>Create Todo</button>
         </div>
     )
 }
