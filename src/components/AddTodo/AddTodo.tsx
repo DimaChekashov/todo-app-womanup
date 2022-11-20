@@ -1,10 +1,17 @@
+import dayjs from 'dayjs';
 import React, { useContext, useState } from 'react';
 import { Context } from '../..';
+import { Todo } from '../../types/types';
 import './AddTodo.less';
 
-const AddTodo: React.FC = () => {
-    const [title, setTitle] = useState<string>();
-    const [description, setDescription] = useState<string>();
+interface Props {
+    createTodo(todo: Todo): void;
+}
+
+const AddTodo: React.FC<Props> = ({createTodo}) => {
+    const [title, setTitle] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [endDate, setEndDate] = useState<number>(Date.now());
     const [file, setFile] = useState<File>();
     const { storageRef } = useContext(Context);
 
@@ -18,9 +25,17 @@ const AddTodo: React.FC = () => {
     }
 
     const uploadFile = () => {
-        storageRef.child(`files/${file?.name}`).put(file).then((snapshot: any) => {
-            console.log(snapshot);
-        });
+        if(file) {
+            // storageRef.child(`files/${file?.name}`).put(file).then((snapshot: any) => {
+            //     console.log(snapshot);
+            // });
+        }
+        // createTodo({
+        //     title,
+        //     description,
+        //     fileUrl: file ? `files/${file?.name}` : "",
+        //     endDate
+        // });
     }
 
     return (
@@ -39,8 +54,17 @@ const AddTodo: React.FC = () => {
                 value={description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
             />
-            <input type="file" className="add-todo__file" onChange={fileOnChange} />
-            <input type="date" placeholder="Todo name" className="add-todo__date" />
+            <input 
+                type="file" 
+                className="add-todo__file" 
+                onChange={fileOnChange} 
+            />
+            <input 
+                type="date" 
+                placeholder="Todo name" 
+                className="add-todo__date" 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(new Date(e.target.value).getTime())}
+            />
             <button className="add-todo__btn" onClick={uploadFile}>Create Todo</button>
         </div>
     )
