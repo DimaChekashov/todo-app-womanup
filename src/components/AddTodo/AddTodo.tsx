@@ -74,13 +74,17 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
                 className="add-todo__file" 
                 onChange={fileOnChange} 
             />
-            <input 
-                type="date" 
-                placeholder="Todo name" 
-                className="add-todo__date"
-                value={endDate}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(dayjs(new Date(e.target.value)).format('YYYY-MM-DD'))}
-            />
+            <div>
+                <label htmlFor="date">Date to end:</label>
+                <input 
+                    id="date"
+                    type="date" 
+                    placeholder="Todo name" 
+                    className="add-todo__date"
+                    value={endDate}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(dayjs(new Date(e.target.value)).format('YYYY-MM-DD'))}
+                />
+            </div>
             <button className="add-todo__btn" onClick={addTodo}>Create Todo</button>
         </div>
     )
