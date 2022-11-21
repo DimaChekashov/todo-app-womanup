@@ -1,14 +1,12 @@
 import React, { useContext, useRef, useState } from 'react';
 import { Context } from '../..';
-import { Todo } from '../../types/types';
+import firebase from 'firebase';
+import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';
 import './AddTodo.less';
 
-interface Props {
-    createTodo(todo: Todo): void;
-}
-
-const AddTodo: React.FC<Props> = ({createTodo}) => {
+const AddTodo: React.FC = () => {
+    const { firestore } = useContext(Context);
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
@@ -26,22 +24,28 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
         setFile(file[0]);
     }
 
-    const addTodo = () => {
+    /** Create a new todo and save it in firestore database */
+    const createTodo = () => {
+        const id: string = uuid();
+        
         if(file) {
             storageRef.child(`files/${file?.name}`).put(file);
         }
-        createTodo({
-            id: "",
+
+        firestore.collection("todos").doc(id).set({
+            id,
             title,
             description,
-            success: false,
             fileUrl: file ? `files/${file?.name}` : "",
-            endDate: dayjs(endDate).valueOf()
+            success: false,
+            endDate,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
         clearFields();
     }
 
+    /** Clear all fields on the inputs and textarea */
     const clearFields = () => {
         setTitle("");
         setDescription("");
@@ -85,7 +89,7 @@ const AddTodo: React.FC<Props> = ({createTodo}) => {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(dayjs(new Date(e.target.value)).format('YYYY-MM-DD'))}
                 />
             </div>
-            <button className="add-todo__btn" onClick={addTodo}>Create Todo</button>
+            <button className="add-todo__btn" onClick={createTodo}>Create Todo</button>
         </div>
     )
 }

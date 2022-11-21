@@ -6,13 +6,12 @@ import './TodoPage.less';
 
 interface Props {
     todo?: Todo;
-    setCurrentTodo(todo: Todo): void;
-    deleteTodo(id: string): void;
     editMode: boolean;
+    setCurrentTodo(todo: Todo | undefined): void;
     setEditMode(status: boolean): void;
 }
 
-const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, setCurrentTodo}) => {
+const TodoPage: React.FC<Props> = ({todo, editMode, setEditMode, setCurrentTodo}) => {
     const { storageRef, firestore } = useContext(Context);
 
     const [title, setTitle] = useState<string>("");
@@ -27,6 +26,7 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
         setEndDate(dayjs(todo?.endDate).format('YYYY-MM-DD'));
     }, [todo]);
 
+    /** Download file from firebase storage */
     const downloadFile = () => {
         storageRef.child(todo?.fileUrl).getDownloadURL()
             .then((url: string) => {
@@ -40,8 +40,8 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
             });
     }
 
+    /** Update todo success field */
     const updateSuccess = () => {
-
         if(todo) {
             firestore.collection('todos').doc(todo?.id).update({
                 "success": !todo.success
@@ -51,6 +51,7 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
         }
     }
 
+    /** Update title, description, endDate fields of the todo */
     const updateFields = () => {
         if(todo) {
             firestore.collection('todos').doc(todo.id).update({
@@ -65,20 +66,27 @@ const TodoPage: React.FC<Props> = ({todo, deleteTodo, editMode, setEditMode, set
         setEditMode(false);
     }
 
+    /** Delete todo */
+    const deleteTodo = (id: string) => {
+        firestore.collection("todos").doc(id).delete();
+        setCurrentTodo(undefined);
+    }
+    
+    /** @returns {string} classes of todo__date */
+    const getTodoDateClasses = (): string => {
+        return [
+            "todo__date",
+            !isFailed ? " failed" : "",
+            todo?.success ? " success" : ""
+        ].join(" ")
+    }
+
     if (!todo) {
         return (
             <div className="todo">
                 <div className="todo__edit-title">Select Todo</div>
             </div>
         )
-    }
-
-    const getTodoDateClasses = (): string => {
-        return [
-            "todo__date",
-            !isFailed ? " failed" : "",
-            todo.success ? " success" : ""
-        ].join(" ")
     }
 
     const editLayout = (

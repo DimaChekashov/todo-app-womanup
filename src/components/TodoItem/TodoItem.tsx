@@ -11,6 +11,7 @@ interface Props {
 const TodoItem: React.FC<Props> = ({todo, onClick}) => {
     const isFailed: boolean = dayjs(todo.endDate).format('YYYY-MM-DD') > dayjs().format('YYYY-MM-DD');
 
+    /** @returns {string} classes of todo-item */
     const getTodoItemClasses = (): string => {
         return [
             "todo-item",
